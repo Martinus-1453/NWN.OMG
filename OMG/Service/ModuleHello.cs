@@ -9,10 +9,10 @@ namespace OMG.Service
   public class ModuleHello
   {
     // Called at startup. NWN.Managed resolves EventService for us.
-    public ModuleHello(NativeEventService eventService)
+    public ModuleHello(NativeEventService nativeEventService)
     {
       // Subscribe to the OnClientEnter event, and call our OnClientEnter function when someone connects.
-      eventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
+      nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
     }
 
     private void OnClientEnter(ModuleEvents.OnClientEnter onClientEnter)
