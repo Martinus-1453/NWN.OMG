@@ -1,22 +1,26 @@
 ﻿using System.Linq;
 using System.Numerics;
+using NLog;
 using NWN.API;
 
 namespace OMG.Data
 {
     public class PersistentLocation
     {
-        public string AreaResRef { get; set; }
+        public string AreaResRef { get; }
 
-        public Vector3 Position { get; set; }
+        public Vector3 Position { get; }
 
-        public float Orientation { get; set; }
+        public float Orientation { get; }
 
         public PersistentLocation(Location location)
         {
-            Position = location.Position;
-            AreaResRef = location.Area.ResRef;
-            Orientation = location.Rotation;
+            if (location != null)
+            {
+                Position = location.Position;
+                AreaResRef = location.Area.ResRef;
+                Orientation = location.Rotation;
+            }
         }
 
         public static implicit operator Location(PersistentLocation persistentLocation)

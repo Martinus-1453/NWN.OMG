@@ -1,6 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
+using NLog;
 using NWN.API;
 using NWN.API.Events;
 using NWN.Services;
@@ -13,8 +13,13 @@ namespace OMG.Service
     {
         public CharacterSerializer(NativeEventService nativeEventService)
         {
+            Database.CreateFolders();
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
-            nativeEventService.Subscribe<NwModule,ModuleEvents.OnClientLeave>(NwModule.Instance, OnClientLeave);
+            nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientLeave>(NwModule.Instance, OnClientLeave);
+            foreach (var instanceArea in NwModule.Instance.Areas)
+            {
+                nativeEventService.Subscribe<NwArea, AreaEvents.OnEnter>(instanceArea, OnEnter);
+            }
         }
 
         private void OnClientEnter(ModuleEvents.OnClientEnter onClientEnter)
@@ -34,18 +39,18 @@ namespace OMG.Service
             Persistence.Characters.Remove(onClientLeave.Player.CDKey);
         }
 
+        private void OnEnter(AreaEvents.OnEnter onEnter)
+        {
+            if (onEnter.EnteringObject is NwPlayer nwPlayer)
+            {
+                var character = Persistence.Characters[nwPlayer.CDKey];
+                character.UpdateCharacter(nwPlayer);
+                SaveCharacter(character);
+            }
+        }
+
         private void SaveCharacter(Character character)
         {
-            // Create directory if not existent
-            if (!Directory.Exists(DatabaseStrings.DatabaseFolderPath))
-            {
-                Directory.CreateDirectory(DatabaseStrings.DatabaseFolderPath);
-
-                if (!Directory.Exists(DatabaseStrings.DatabaseCharacterFolderPath))
-                {
-                    Directory.CreateDirectory(DatabaseStrings.DatabaseCharacterFolderPath);
-                }
-            }
             // Save character json
             File.WriteAllText(GetCharacterFilePath(character), JsonConvert.SerializeObject(character));
         }
@@ -56,43 +61,48 @@ namespace OMG.Service
 
             if (!File.Exists(filePath))
             {
+                // Make a new file for a new character
                 var newCharacter = new Character
                 {
                     PlayerName = nwPlayer.PlayerName,
                     Name = nwPlayer.Name,
                     CDKey = nwPlayer.CDKey,
-                    HealthPoints = nwPlayer.HP,
+                    HP = nwPlayer.HP,
                     IsDead = nwPlayer.IsDead,
                     PersistentLocation = new PersistentLocation(NwModule.Instance.StartingLocation)
                 };
-
+                // Save character .json
                 SaveCharacter(newCharacter);
 
                 return newCharacter;
             }
 
+            // Deserialize character .json
             var character = JsonConvert.DeserializeObject<Character>(File.ReadAllText(filePath));
 
-            if (character != null)
+            if (character == null) return null;
+
+            LogManager.GetCurrentClassLogger().Info($"{character.PersistentLocation.Position} {character.PersistentLocation.AreaResRef} {character.PersistentLocation.Orientation}");
+            character.UpdateNwPlayer(nwPlayer);
+
+            // Check if player name checks out
+            if (nwPlayer.PlayerName != character.PlayerName)
             {
-                character.UpdateCharacter(nwPlayer);
-
-                // CHECK PLAYER NAME HERE
-                if (nwPlayer.PlayerName != character.PlayerName || nwPlayer.CDKey != character.CDKey)
-                {
-                    //KICK PLAYER
-                }
-
-                //CHECK IF DEAD
-                if (character.IsDead)
-                {
-                    //KILL CHARACTER OR SMTH
-                }
-
-                return character;
+                // kick player
+                nwPlayer.BootPlayer("Wrong player name");
+            } // Check if player has a valid cdkey
+            else if (nwPlayer.CDKey != character.CDKey)
+            {
+                // kick player
+                nwPlayer.BootPlayer("Invalid CD-key");
+            }
+            // Check if player was dead
+            if (character.IsDead)
+            {
+                //TODO: KILL CHARACTER OR SMTH
             }
 
-            return null;
+            return character;
         }
 
         private string GetCharacterFilePath(NwPlayer nwPlayer)

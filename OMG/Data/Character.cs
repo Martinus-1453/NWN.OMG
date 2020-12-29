@@ -1,6 +1,4 @@
-﻿
-using System.Dynamic;
-using NWN.API;
+﻿using NWN.API;
 
 namespace OMG.Data
 {
@@ -9,19 +7,19 @@ namespace OMG.Data
         public string PlayerName { get; set; }
         public string Name { get; set; }
         public string CDKey { get; set; }
-        public int HealthPoints { get; set; }
+        public int HP { get; set; }
         public bool IsDead { get; set; }
         public PersistentLocation PersistentLocation { get; set; }
 
         public void UpdateCharacter(NwPlayer nwPlayer)
         {
-            HealthPoints = nwPlayer.HP;
+            HP = nwPlayer.HP;
             PersistentLocation = new PersistentLocation(nwPlayer.Location);
         }
 
         public void UpdateNwPlayer(NwPlayer nwPlayer)
         {
-            nwPlayer.HP = HealthPoints;
+            nwPlayer.HP = HP;
             nwPlayer.Location = PersistentLocation;
         }
 

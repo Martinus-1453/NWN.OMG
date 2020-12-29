@@ -1,4 +1,5 @@
-﻿
+﻿using System.IO;
+
 namespace OMG.Service
 {
     internal static class DatabaseStrings
@@ -8,7 +9,20 @@ namespace OMG.Service
         internal static readonly string DatabaseFileFormat = ".json";
     }
 
-    public class Database
+    public static class Database
     {
+        public static void CreateFolders()
+        {
+            // Create directory if not existent
+            if (!Directory.Exists(DatabaseStrings.DatabaseFolderPath))
+            {
+                Directory.CreateDirectory(DatabaseStrings.DatabaseFolderPath);
+
+                if (!Directory.Exists(DatabaseStrings.DatabaseCharacterFolderPath))
+                {
+                    Directory.CreateDirectory(DatabaseStrings.DatabaseCharacterFolderPath);
+                }
+            }
+        }
     }
 }
