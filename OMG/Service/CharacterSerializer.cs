@@ -118,9 +118,7 @@ namespace OMG.Service
             return newCharacter;
         }
 
-        protected override string GetFilePath(NwPlayer nwObject)
-        {
-            return $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
-        }
+        protected override string GetFilePath(NwPlayer nwObject) =>
+            $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
     }
 }

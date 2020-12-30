@@ -7,6 +7,7 @@ namespace OMG.Data
     {
         protected Entity(T nwObjectInstance)
         {
+            if (NwObjectInstance == null) return;
             NwObjectInstance = nwObjectInstance;
         }
 
