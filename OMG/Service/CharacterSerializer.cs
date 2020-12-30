@@ -1,15 +1,15 @@
-﻿using System.IO;
-using Newtonsoft.Json;
-using NLog;
+﻿using Newtonsoft.Json;
 using NWN.API;
 using NWN.API.Events;
 using NWN.Services;
 using OMG.Data;
+using System.IO;
+using static OMG.Service.LogService;
 
 namespace OMG.Service
 {
     [ServiceBinding(typeof(CharacterSerializer))]
-    class CharacterSerializer
+    class CharacterSerializer : Serializer<CharacterEntity, NwPlayer>
     {
         public CharacterSerializer(NativeEventService nativeEventService)
         {
@@ -24,95 +24,103 @@ namespace OMG.Service
 
         private void OnClientEnter(ModuleEvents.OnClientEnter onClientEnter)
         {
+            // Add Character to collection with sanity check
             if (!Persistence.Characters.ContainsKey(onClientEnter.Player.CDKey))
             {
                 Persistence.Characters.Add(onClientEnter.Player.CDKey,
-                    LoadCharacter(onClientEnter.Player));
+                    Deserialize(onClientEnter.Player));
             }
         }
 
         private void OnClientLeave(ModuleEvents.OnClientLeave onClientLeave)
         {
-            var character = Persistence.Characters[onClientLeave.Player.CDKey];
-            character.UpdateCharacter(onClientLeave.Player);
-            SaveCharacter(character);
-            Persistence.Characters.Remove(onClientLeave.Player.CDKey);
+            var clientKey = onClientLeave.Player.CDKey;
+            var character = Persistence.Characters[clientKey];
+            character.UpdateEntity();
+            Serialize(character);
+            Persistence.Characters.Remove(clientKey);
         }
 
         private void OnEnter(AreaEvents.OnEnter onEnter)
         {
-            if (onEnter.EnteringObject is NwPlayer nwPlayer)
-            {
-                var character = Persistence.Characters[nwPlayer.CDKey];
-                character.UpdateCharacter(nwPlayer);
-                SaveCharacter(character);
-            }
+            if (!(onEnter.EnteringObject is NwPlayer nwPlayer)) return;
+            if (!Persistence.Characters.ContainsKey(nwPlayer.CDKey)) return;
+
+            var character = Persistence.Characters[nwPlayer.CDKey];
+            character.UpdateEntity();
+            Serialize(character);
         }
 
-        private void SaveCharacter(Character character)
+        public override void Serialize(CharacterEntity entity)
         {
-            // Save character json
-            File.WriteAllText(GetCharacterFilePath(character), JsonConvert.SerializeObject(character));
+            // Serialize characterEntity json
+            File.WriteAllText(GetFilePath(entity), JsonConvert.SerializeObject(entity));
         }
 
-        private Character LoadCharacter(NwPlayer nwPlayer)
+        public override CharacterEntity Deserialize(NwPlayer nwObject)
         {
-            string filePath = GetCharacterFilePath(nwPlayer);
+            var filePath = GetFilePath(nwObject);
 
-            if (!File.Exists(filePath))
+            if (File.Exists(filePath))
             {
-                // Make a new file for a new character
-                var newCharacter = new Character
+                // Deserialize character json
+                var character = JsonConvert.DeserializeObject<CharacterEntity>(File.ReadAllText(filePath));
+
+                // Check if player name checks out
+                if (nwObject.PlayerName != character.PlayerName)
                 {
-                    PlayerName = nwPlayer.PlayerName,
-                    Name = nwPlayer.Name,
-                    CDKey = nwPlayer.CDKey,
-                    HP = nwPlayer.HP,
-                    IsDead = nwPlayer.IsDead,
-                    PersistentLocation = new PersistentLocation(NwModule.Instance.StartingLocation)
-                };
-                // Save character .json
-                SaveCharacter(newCharacter);
+                    nwObject.BootPlayer("Wrong player name");
+                    Logger.Info(
+                        $"{character.PlayerName} was kicked cause of incorrect player name associated with {character.Name}!");
+                    return null;
+                }
+                // Check if player has a valid cdkey
+                if (nwObject.CDKey != character.CDKey)
+                {
+                    nwObject.BootPlayer("Invalid CD-key");
+                    Logger.Info(
+                        $"{character.PlayerName} was kicked cause of incorrect cdkey associated with {character.Name}!");
+                    return null;
+                }
 
-                return newCharacter;
+                // Assign and update NwObjectInstance corresponding to Entity
+                character.NwObjectInstance = nwObject;
+                character.UpdateNwObject();
+
+                // Check if player was dead
+                if (character.IsDead)
+                {
+                    //TODO: KILL CHARACTER OR SMTH
+                }
+
+                return character;
             }
 
-            // Deserialize character .json
-            var character = JsonConvert.DeserializeObject<Character>(File.ReadAllText(filePath));
-
-            if (character == null) return null;
-
-            LogManager.GetCurrentClassLogger().Info($"{character.PersistentLocation.Position} {character.PersistentLocation.AreaResRef} {character.PersistentLocation.Orientation}");
-            character.UpdateNwPlayer(nwPlayer);
-
-            // Check if player name checks out
-            if (nwPlayer.PlayerName != character.PlayerName)
-            {
-                // kick player
-                nwPlayer.BootPlayer("Wrong player name");
-            } // Check if player has a valid cdkey
-            else if (nwPlayer.CDKey != character.CDKey)
-            {
-                // kick player
-                nwPlayer.BootPlayer("Invalid CD-key");
-            }
-            // Check if player was dead
-            if (character.IsDead)
-            {
-                //TODO: KILL CHARACTER OR SMTH
-            }
-
-            return character;
+            // Character is new => Make a new file for the characterEntity
+            return Initialize(nwObject);
         }
 
-        private string GetCharacterFilePath(NwPlayer nwPlayer)
+        public override CharacterEntity Initialize(NwPlayer nwObject)
         {
-            return $"{DatabaseStrings.DatabaseCharacterFolderPath}\\{nwPlayer.Name}{DatabaseStrings.DatabaseFileFormat}";
+            var newCharacter = new CharacterEntity(nwObject)
+            {
+                PlayerName = nwObject.PlayerName,
+                Name = nwObject.Name,
+                CDKey = nwObject.CDKey,
+                HP = nwObject.HP,
+                IsDead = nwObject.IsDead,
+                PersistentLocation = new PersistentLocation(NwModule.Instance.StartingLocation)
+            };
+
+            // Serialize characterEntity json
+            Serialize(newCharacter);
+
+            return newCharacter;
         }
 
-        private string GetCharacterFilePath(Character character)
+        protected override string GetFilePath(NwPlayer nwObject)
         {
-            return $"{DatabaseStrings.DatabaseCharacterFolderPath}\\{character.Name}{DatabaseStrings.DatabaseFileFormat}";
+            return $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
         }
     }
 }

@@ -1,27 +1,28 @@
 ﻿using System.Linq;
 using System.Numerics;
-using NLog;
 using NWN.API;
+using static OMG.Service.LogService;
 
 namespace OMG.Data
 {
     public class PersistentLocation
     {
-        public string AreaResRef { get; }
-
-        public Vector3 Position { get; }
-
-        public float Orientation { get; }
-
         public PersistentLocation(Location location)
         {
-            if (location != null)
+            if (location == null)
             {
-                Position = location.Position;
-                AreaResRef = location.Area.ResRef;
-                Orientation = location.Rotation;
+                Logger.Warn($"PersistentLocation: ctor of {this} is null");
+                return;
             }
+
+            Position = location.Position;
+            AreaResRef = location.Area.ResRef;
+            Orientation = location.Rotation;
         }
+
+        public string AreaResRef { get; }
+        public Vector3 Position { get; }
+        public float Orientation { get; }
 
         public static implicit operator Location(PersistentLocation persistentLocation)
         {
