@@ -1,6 +1,4 @@
-﻿
-using NLog.Filters;
-using NWN.API;
+﻿using NWN.API;
 using OMG.Data;
 
 namespace OMG.Service
