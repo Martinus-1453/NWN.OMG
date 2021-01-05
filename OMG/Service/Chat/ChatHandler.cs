@@ -28,7 +28,7 @@ namespace OMG.Service.Chat
 
             // Find first message from created ones. Command must be at the begining of the event message. 
             // The rest of the message is probably arguments or empty
-            var foundCommand = chatCommands.First(command => command.Command.StartsWith(message));
+            var foundCommand = chatCommands.First(command => command.Command.ToLower().StartsWith(message.ToLower()));
             foundCommand?.ExecuteCommand(eventInfo.Sender, message[foundCommand.Command.Length..]);
         }
     }
