@@ -4,6 +4,7 @@ using OMG.Interface;
 using System.Collections.Generic;
 using NWN.API;
 using System.Linq;
+using NLog.Targets.Wrappers;
 
 namespace OMG.Service.Chat
 {
@@ -24,12 +25,12 @@ namespace OMG.Service.Chat
         public void OnChatMessage(ModuleEvents.OnPlayerChat eventInfo)
         {
             // Get the message from the event.
-            string message = eventInfo.Message;
-
+            var message = eventInfo.Message.Split(' ');
             // Find first message from created ones. Command must be at the begining of the event message. 
             // The rest of the message is probably arguments or empty
-            var foundCommand = chatCommands.First(command => command.Command.ToLower().StartsWith(message.ToLower()));
-            foundCommand?.ExecuteCommand(eventInfo.Sender, message[foundCommand.Command.Length..]);
+
+            var foundCommand = chatCommands.First(command => command.Command.ToLower().Equals(message[0].ToLower()));
+            foundCommand?.ExecuteCommand(eventInfo.Sender, message[1..]);
         }
     }
 }

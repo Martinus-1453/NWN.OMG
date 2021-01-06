@@ -1,7 +1,6 @@
 ﻿using NWN.API;
 using NWN.Services;
 using OMG.Interface;
-using System;
 
 namespace OMG.Service.Chat
 {
@@ -9,6 +8,8 @@ namespace OMG.Service.Chat
     class GiveXPCommand : IChatCommand
     {
         public string Command { get; } = "/givexp";
+        public bool IsDMOnly { get; } = true;
+
         private readonly CursorTargetService cursorTargetService;
 
         public GiveXPCommand(CursorTargetService cursorTargetService)
@@ -16,9 +17,10 @@ namespace OMG.Service.Chat
             this.cursorTargetService = cursorTargetService;
         }
 
-        public void ExecuteCommand(NwPlayer sender, string arguments)
+        public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
-            if (Int32.TryParse(arguments[..1], out int amount))
+            if (!sender.IsDM && IsDMOnly) return;
+            if (int.TryParse(arguments[0], out var amount))
             {
                 cursorTargetService.EnterTargetMode(sender, selected =>
                 {
@@ -26,7 +28,6 @@ namespace OMG.Service.Chat
                     {
                         nwPlayer.GiveXp(amount);
                     }
-                    
                 }, NWN.API.Constants.ObjectTypes.Creature);
             }
         }
