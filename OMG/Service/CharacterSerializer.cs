@@ -1,15 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using System.IO;
+using Newtonsoft.Json;
 using NWN.API;
 using NWN.API.Events;
 using NWN.Services;
 using OMG.Data;
-using System.IO;
 using static OMG.Service.LogService;
 
 namespace OMG.Service
 {
     [ServiceBinding(typeof(CharacterSerializer))]
-    class CharacterSerializer : Serializer<CharacterEntity, NwPlayer>
+    internal class CharacterSerializer : Serializer<CharacterEntity, NwPlayer>
     {
         public CharacterSerializer(NativeEventService nativeEventService)
         {
@@ -17,19 +17,15 @@ namespace OMG.Service
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientLeave>(NwModule.Instance, OnClientLeave);
             foreach (var instanceArea in NwModule.Instance.Areas)
-            {
                 nativeEventService.Subscribe<NwArea, AreaEvents.OnEnter>(instanceArea, OnEnter);
-            }
         }
 
         private void OnClientEnter(ModuleEvents.OnClientEnter onClientEnter)
         {
             // Add Character to collection with sanity check
             if (!Persistence.Characters.ContainsKey(onClientEnter.Player.CDKey))
-            {
                 Persistence.Characters.Add(onClientEnter.Player.CDKey,
                     Deserialize(onClientEnter.Player));
-            }
         }
 
         private void OnClientLeave(ModuleEvents.OnClientLeave onClientLeave)
@@ -74,6 +70,7 @@ namespace OMG.Service
                         $"{character.PlayerName} was kicked cause of incorrect player name associated with {character.Name}!");
                     return null;
                 }
+
                 // Check if player has a valid cdkey
                 if (nwObject.CDKey != character.CDKey)
                 {
@@ -118,7 +115,9 @@ namespace OMG.Service
             return newCharacter;
         }
 
-        protected override string GetFilePath(NwPlayer nwObject) =>
-            $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
+        protected override string GetFilePath(NwPlayer nwObject)
+        {
+            return $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
+        }
     }
 }

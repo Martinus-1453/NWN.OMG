@@ -5,6 +5,10 @@ namespace OMG.Data
 {
     public class CharacterEntity : Entity<NwPlayer>
     {
+        public CharacterEntity(NwPlayer nwObjectInstance) : base(nwObjectInstance)
+        {
+        }
+
         public string PlayerName { get; set; }
         public string Name { get; set; }
         public string CDKey { get; set; }
@@ -27,10 +31,6 @@ namespace OMG.Data
         {
             NwObjectInstance.HP = HP;
             NwObjectInstance.Location = PersistentLocation;
-        }
-
-        public CharacterEntity(NwPlayer nwObjectInstance) : base(nwObjectInstance)
-        {
         }
     }
 }

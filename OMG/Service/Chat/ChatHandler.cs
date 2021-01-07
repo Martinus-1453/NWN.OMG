@@ -1,9 +1,10 @@
-﻿using NWN.Services;
-using NWN.API.Events;
-using OMG.Interface;
-using System.Collections.Generic;
-using NWN.API;
+﻿using System.Collections.Generic;
 using System.Linq;
+using NWN.API;
+using NWN.API.Constants;
+using NWN.API.Events;
+using NWN.Services;
+using OMG.Interface;
 
 namespace OMG.Service.Chat
 {
@@ -30,7 +31,7 @@ namespace OMG.Service.Chat
             {
                 // Message is out-of-character
                 // Make it orange
-                message = StringExtensions.ColorString(message, new Color(255, 165, 0));
+                message = message.ColorString(new Color(255, 165, 0));
             }
             else
             {
@@ -38,31 +39,30 @@ namespace OMG.Service.Chat
                 var foundEmoteIndices = new List<int>();
                 // Check if message contains emote symbol
                 if (message.Contains('*'))
-                {
-                    // Find emote symbol '*' occurences
-                    for (int i = 0; i < message.Length; i++)
-                    {
-                        if (message[i] == '*') foundEmoteIndices.Add(i);
-                    }
-                    // ^This definetely can be replaced with Regex.Split()
-                    // ¯\_(ツ)_/¯
-                }
+                    // Find emote symbol '*' occurrences
+                    for (var i = 0; i < message.Length; i++)
+                        if (message[i] == '*')
+                            foundEmoteIndices.Add(i);
+                // ^This definitely can be replaced with Regex.Split()
+                // ¯\_(ツ)_/¯
 
                 // Emote is always a pair of '*'
                 // Discard odd last '*' by dividing Count by 2
-                for (int i = 0; i < foundEmoteIndices.Count / 2; i++)
+                for (var i = 0; i < foundEmoteIndices.Count / 2; i++)
                 {
-                    var emote = message.Substring(foundEmoteIndices[i * 2], foundEmoteIndices[(i + 1) * 2] - foundEmoteIndices[i * 2]);
+                    var emote = message.Substring(foundEmoteIndices[i * 2],
+                        foundEmoteIndices[(i + 1) * 2] - foundEmoteIndices[i * 2]);
                     // Color emote to cyan
-                    message = message.Replace(emote, StringExtensions.ColorString(emote, new Color(0, 116, 214)));
+                    message = message.Replace(emote, emote.ColorString(new Color(0, 116, 214)));
                 }
             }
+
             return message;
         }
 
         public void OnChatMessage(ModuleEvents.OnPlayerChat eventInfo)
         {
-            // Trim message to remove excess spaces at the begining and the end
+            // Trim message to remove excess spaces at the beginning and the end
             eventInfo.Message = eventInfo.Message.Trim();
             // Get the message from the event
             var message = eventInfo.Message.Split(' ');
@@ -74,17 +74,16 @@ namespace OMG.Service.Chat
             if (!message[0].StartsWith('/') || message[0].StartsWith("//"))
             {
                 // Disable Shout and Party for players
-                if (eventInfo.Volume == NWN.API.Constants.TalkVolume.Shout
-                     || eventInfo.Volume == NWN.API.Constants.TalkVolume.Party)
-                {
+                if (eventInfo.Volume == TalkVolume.Shout
+                    || eventInfo.Volume == TalkVolume.Party)
                     if (!eventInfo.Sender.IsDM)
                     {
                         eventInfo.Message = null;
                         return;
                     }
-                }
+
                 // A good place to send chat message to discord or smth
-                SendToWebhook(eventInfo);
+                SendToWebHook(eventInfo);
                 // Handle message further
                 eventInfo.Message = ProcessChatMessage(eventInfo);
                 return;
@@ -93,24 +92,20 @@ namespace OMG.Service.Chat
             // It's a valid command at this point and we don't want player to send the message in the chat
             eventInfo.Message = null;
 
-            // Find first message from created ones. Command must be at the begining of the event message. 
+            // Find first message from created ones. Command must be at the beginning of the event message. 
             // The rest of the message is probably arguments or empty
             var foundCommand = chatCommands.First(command => command.Command.ToLower().Equals(message[0].ToLower()));
 
             // This checks might look weird but it ensures to give access to DM commands only to DMs
             // Also checks whether command is not null you dummy :)
-            if (foundCommand != null || eventInfo.Sender.IsDM || !foundCommand.IsDMOnly)
-            {
-                foundCommand.ExecuteCommand(eventInfo.Sender, message[1..]);
-            }
+            if (eventInfo.Sender.IsDM || foundCommand?.IsDMOnly == false)
+                foundCommand?.ExecuteCommand(eventInfo.Sender, message[1..]);
             else
-            {
                 // (╯°□°）╯︵ ┻━┻
                 eventInfo.Sender.SendServerMessage($"Command: {message[0]} could not be found");
-            }
         }
 
-        public void SendToWebhook(ModuleEvents.OnPlayerChat eventInfo)
+        public void SendToWebHook(ModuleEvents.OnPlayerChat eventInfo)
         {
             // TODO: Implement webhook
         }

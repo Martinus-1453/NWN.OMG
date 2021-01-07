@@ -1,15 +1,13 @@
 ﻿using NWN.API;
+using NWN.API.Constants;
 using NWN.Services;
 using OMG.Interface;
 
 namespace OMG.Service.Chat
 {
     [ServiceBinding(typeof(IChatCommand))]
-    class GiveXPCommand : IChatCommand
+    internal class GiveXPCommand : IChatCommand
     {
-        public string Command { get; } = "/givexp";
-        public bool IsDMOnly { get; } = true;
-
         private readonly CursorTargetService cursorTargetService;
 
         public GiveXPCommand(CursorTargetService cursorTargetService)
@@ -17,15 +15,17 @@ namespace OMG.Service.Chat
             this.cursorTargetService = cursorTargetService;
         }
 
+        public string Command { get; } = "/givexp";
+        public bool IsDMOnly { get; } = true;
+
         public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
             if (arguments.Length == 0) return;
 
             if (int.TryParse(arguments[0], out var amount))
-            {
                 cursorTargetService.EnterTargetMode(sender, selected =>
                 {
-                    if(selected.TargetObj is NwPlayer nwPlayer)
+                    if (selected.TargetObj is NwPlayer nwPlayer)
                     {
                         nwPlayer.GiveXp(amount);
                         sender.SendServerMessage($"You've given {nwPlayer.Name} {amount} XP", Color.GREEN);
@@ -33,14 +33,11 @@ namespace OMG.Service.Chat
                     }
                     else
                     {
-                        sender.SendServerMessage($"Invalid object selected", Color.RED);
+                        sender.SendServerMessage("Invalid object selected", Color.RED);
                     }
-                }, NWN.API.Constants.ObjectTypes.Creature);
-            }
+                }, ObjectTypes.Creature);
             else
-            {
-                sender.SendServerMessage($"Invalid argument", Color.RED);
-            }
+                sender.SendServerMessage("Invalid argument", Color.RED);
         }
     }
 }

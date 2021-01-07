@@ -1,4 +1,5 @@
-﻿using NWN.API;
+﻿using System;
+using NWN.API;
 using OMG.Data;
 
 namespace OMG.Service
@@ -7,12 +8,28 @@ namespace OMG.Service
         where TEntity : Entity<TNwObject>
         where TNwObject : NwObject
     {
-        protected Serializer() => Database.CreateFolders();
+        protected Serializer()
+        {
+            Database.CreateFolders();
+        }
+
         public abstract void Serialize(TEntity entity);
         public abstract TEntity Deserialize(TNwObject nwObject);
         public abstract TEntity Initialize(TNwObject nwObject);
-        public virtual string GetFilePath() => throw new System.NotImplementedException();
-        protected virtual string GetFilePath(TNwObject nwObject) => throw new System.NotImplementedException();
-        protected virtual string GetFilePath(TEntity entity) => $"{entity.FileFolderPath}\\{entity.ID}{DatabaseStrings.FileFormat}";
+
+        public virtual string GetFilePath()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual string GetFilePath(TNwObject nwObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual string GetFilePath(TEntity entity)
+        {
+            return $"{entity.FileFolderPath}\\{entity.ID}{DatabaseStrings.FileFormat}";
+        }
     }
 }
