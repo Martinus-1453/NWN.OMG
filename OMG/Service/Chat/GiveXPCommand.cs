@@ -19,7 +19,8 @@ namespace OMG.Service.Chat
 
         public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
-            if (!sender.IsDM && IsDMOnly) return;
+            if (arguments.Length == 0) return;
+
             if (int.TryParse(arguments[0], out var amount))
             {
                 cursorTargetService.EnterTargetMode(sender, selected =>
@@ -27,8 +28,18 @@ namespace OMG.Service.Chat
                     if(selected.TargetObj is NwPlayer nwPlayer)
                     {
                         nwPlayer.GiveXp(amount);
+                        sender.SendServerMessage($"You've given {nwPlayer.Name} {amount} XP", Color.GREEN);
+                        nwPlayer.SendServerMessage($"You've been given {amount} XP by {sender.Name}", Color.GREEN);
+                    }
+                    else
+                    {
+                        sender.SendServerMessage($"Invalid object selected", Color.RED);
                     }
                 }, NWN.API.Constants.ObjectTypes.Creature);
+            }
+            else
+            {
+                sender.SendServerMessage($"Invalid argument", Color.RED);
             }
         }
     }
