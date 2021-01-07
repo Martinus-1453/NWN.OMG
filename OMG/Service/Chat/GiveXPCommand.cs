@@ -20,9 +20,8 @@ namespace OMG.Service.Chat
 
         public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
-            if (arguments.Length == 0) return;
-
-            if (int.TryParse(arguments[0], out var amount))
+            if (arguments.Length > 0 && int.TryParse(arguments[0], out var amount))
+            {
                 cursorTargetService.EnterTargetMode(sender, selected =>
                 {
                     if (selected.TargetObj is NwPlayer nwPlayer)
@@ -36,8 +35,11 @@ namespace OMG.Service.Chat
                         sender.SendServerMessage("Invalid object selected", Color.RED);
                     }
                 }, ObjectTypes.Creature);
+            }
             else
+            {
                 sender.SendServerMessage("Invalid argument", Color.RED);
+            }
         }
     }
 }

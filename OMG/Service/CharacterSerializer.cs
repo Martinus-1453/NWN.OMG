@@ -17,15 +17,19 @@ namespace OMG.Service
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientLeave>(NwModule.Instance, OnClientLeave);
             foreach (var instanceArea in NwModule.Instance.Areas)
+            {
                 nativeEventService.Subscribe<NwArea, AreaEvents.OnEnter>(instanceArea, OnEnter);
+            }
         }
 
         private void OnClientEnter(ModuleEvents.OnClientEnter onClientEnter)
         {
             // Add Character to collection with sanity check
             if (!Persistence.Characters.ContainsKey(onClientEnter.Player.CDKey))
+            {
                 Persistence.Characters.Add(onClientEnter.Player.CDKey,
                     Deserialize(onClientEnter.Player));
+            }
         }
 
         private void OnClientLeave(ModuleEvents.OnClientLeave onClientLeave)
@@ -39,8 +43,15 @@ namespace OMG.Service
 
         private void OnEnter(AreaEvents.OnEnter onEnter)
         {
-            if (!(onEnter.EnteringObject is NwPlayer nwPlayer)) return;
-            if (!Persistence.Characters.ContainsKey(nwPlayer.CDKey)) return;
+            if (!(onEnter.EnteringObject is NwPlayer nwPlayer))
+            {
+                return;
+            }
+
+            if (!Persistence.Characters.ContainsKey(nwPlayer.CDKey))
+            {
+                return;
+            }
 
             var character = Persistence.Characters[nwPlayer.CDKey];
             character.UpdateEntity();

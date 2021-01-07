@@ -25,7 +25,6 @@ namespace OMG.Service.Chat
         public string ProcessChatMessage(ModuleEvents.OnPlayerChat eventInfo)
         {
             var message = eventInfo.Message;
-
             // Check if message starts with out-of-character sequence "//"
             if (message.StartsWith("//"))
             {
@@ -39,10 +38,16 @@ namespace OMG.Service.Chat
                 var foundEmoteIndices = new List<int>();
                 // Check if message contains emote symbol
                 if (message.Contains('*'))
-                    // Find emote symbol '*' occurrences
+                // Find emote symbol '*' occurrences
+                {
                     for (var i = 0; i < message.Length; i++)
+                    {
                         if (message[i] == '*')
+                        {
                             foundEmoteIndices.Add(i);
+                        }
+                    }
+                }
                 // ^This definitely can be replaced with Regex.Split()
                 // ¯\_(ツ)_/¯
 
@@ -50,8 +55,9 @@ namespace OMG.Service.Chat
                 // Discard odd last '*' by dividing Count by 2
                 for (var i = 0; i < foundEmoteIndices.Count / 2; i++)
                 {
-                    var emote = message.Substring(foundEmoteIndices[i * 2],
-                        foundEmoteIndices[(i + 1) * 2] - foundEmoteIndices[i * 2]);
+                    var startIndex = foundEmoteIndices[i * 2];
+                    var endIndex = foundEmoteIndices[i * 2 + 1];
+                    var emote = message[startIndex..(endIndex + 1)];
                     // Color emote to cyan
                     message = message.Replace(emote, emote.ColorString(new Color(0, 116, 214)));
                 }
@@ -68,19 +74,24 @@ namespace OMG.Service.Chat
             var message = eventInfo.Message.Split(' ');
 
             // Check if message has command syntax
-            if (message.Length == 0) return;
-            if (message[0].Length < 2) return;
+            if (message.Length == 0 || message[0].Length < 2)
+            {
+                return;
+            }
+
             // Check if message is not a command and needs to be processed by ProcessChatMessage method
             if (!message[0].StartsWith('/') || message[0].StartsWith("//"))
             {
                 // Disable Shout and Party for players
                 if (eventInfo.Volume == TalkVolume.Shout
                     || eventInfo.Volume == TalkVolume.Party)
+                {
                     if (!eventInfo.Sender.IsDM)
                     {
                         eventInfo.Message = null;
                         return;
                     }
+                }
 
                 // A good place to send chat message to discord or smth
                 SendToWebHook(eventInfo);
@@ -89,20 +100,27 @@ namespace OMG.Service.Chat
                 return;
             }
 
-            // It's a valid command at this point and we don't want player to send the message in the chat
-            eventInfo.Message = null;
-
             // Find first message from created ones. Command must be at the beginning of the event message. 
             // The rest of the message is probably arguments or empty
-            var foundCommand = chatCommands.First(command => command.Command.ToLower().Equals(message[0].ToLower()));
+            var foundCommand = chatCommands.FirstOrDefault(command => command.Command.ToLower().Equals(message[0].ToLower()));
 
             // This checks might look weird but it ensures to give access to DM commands only to DMs
             // Also checks whether command is not null you dummy :)
-            if (eventInfo.Sender.IsDM || foundCommand?.IsDMOnly == false)
-                foundCommand?.ExecuteCommand(eventInfo.Sender, message[1..]);
+            if (foundCommand != null && (eventInfo.Sender.IsDM || !foundCommand.IsDMOnly))
+            {
+                foundCommand.ExecuteCommand(eventInfo.Sender, message[1..]);
+            }
+            else if(message[0].ToLower() == "/help")
+            {
+                //TODO: Handle help command here
+            }
             else
+            {
                 // (╯°□°）╯︵ ┻━┻
-                eventInfo.Sender.SendServerMessage($"Command: {message[0]} could not be found");
+                eventInfo.Sender.SendServerMessage($"Command: {message[0]} could not be found. Type /help for command list");
+            }
+            // It's a valid command at this point and we don't want player to send the message in the chat
+            eventInfo.Message = null;
         }
 
         public void SendToWebHook(ModuleEvents.OnPlayerChat eventInfo)

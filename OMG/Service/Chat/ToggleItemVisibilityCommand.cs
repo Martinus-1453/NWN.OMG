@@ -13,7 +13,10 @@ namespace OMG.Service.Chat
 
         public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
-            if (arguments.Length <= 0) return;
+            if (arguments.Length < 1)
+            {
+                return;
+            }
 
             switch (arguments[0].ToLower())
             {
@@ -40,7 +43,10 @@ namespace OMG.Service.Chat
 
         private void ToggleItemVisibility(NwItem nwItem)
         {
-            if (nwItem.IsValid) nwItem.HiddenWhenEquipped = ++nwItem.HiddenWhenEquipped % 2;
+            if (nwItem.IsValid)
+            {
+                nwItem.HiddenWhenEquipped = ++nwItem.HiddenWhenEquipped % 2;
+            }
         }
     }
 }

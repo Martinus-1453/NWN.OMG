@@ -20,7 +20,9 @@ namespace OMG.Service
                 Directory.CreateDirectory(DatabaseStrings.FolderPath);
 
                 if (!Directory.Exists(DatabaseStrings.CharacterFolderPath))
+                {
                     Directory.CreateDirectory(DatabaseStrings.CharacterFolderPath);
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using NWN.API;
+﻿using System.Text;
+using NWN.API;
 using NWN.Services;
 using OMG.Interface;
 
@@ -12,9 +13,13 @@ namespace OMG.Service.Chat
 
         public void ExecuteCommand(NwPlayer sender, string[] arguments)
         {
-            var playerList = string.Empty;
-            foreach (var player in NwModule.Instance.Players) playerList += $"{player.PlayerName}, ";
-            sender.SendServerMessage($"Online players: {playerList[^1..]}", Color.ROSE);
+            var playerList = new StringBuilder();
+            foreach (var player in NwModule.Instance.Players)
+            {
+                playerList.Append($"{player.PlayerName}, ");
+            }
+
+            sender.SendServerMessage($"Online players: {playerList.ToString()[..^2]}", Color.ROSE);
         }
     }
 }
