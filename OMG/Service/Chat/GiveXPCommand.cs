@@ -2,6 +2,7 @@
 using NWN.API.Constants;
 using NWN.Services;
 using OMG.Interface;
+using OMG.Util;
 
 namespace OMG.Service.Chat
 {
@@ -24,21 +25,27 @@ namespace OMG.Service.Chat
             {
                 cursorTargetService.EnterTargetMode(sender, selected =>
                 {
-                    if (selected.TargetObj is NwPlayer nwPlayer)
+                    if (selected.TargetObj is not null && selected.TargetObj is NwPlayer nwPlayer)
                     {
                         nwPlayer.GiveXp(amount);
-                        sender.SendServerMessage($"You've given {nwPlayer.Name} {amount} XP", Color.GREEN);
-                        nwPlayer.SendServerMessage($"You've been given {amount} XP by {sender.Name}", Color.GREEN);
+
+                        // TODO: FIX THIS CAUSE THIS CHECK DOES NOT WORK
+                        if (nwPlayer == sender)
+                        {
+                            sender.SendServerMessage($"You've given {nwPlayer.Name} {amount} XP", Colors.Green);
+                        }
+
+                        nwPlayer.SendServerMessage($"You've been given {amount} XP by {sender.Name}", Colors.Green);
                     }
                     else
                     {
-                        sender.SendServerMessage("Invalid object selected", Color.RED);
+                        sender.SendServerMessage("Invalid object selected", Colors.Red);
                     }
                 }, ObjectTypes.Creature);
             }
             else
             {
-                sender.SendServerMessage("Invalid argument", Color.RED);
+                sender.SendServerMessage("Invalid argument", Colors.Red);
             }
         }
     }

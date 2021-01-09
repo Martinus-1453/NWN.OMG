@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 using NWN.API;
 using NWN.API.Events;
@@ -43,24 +44,18 @@ namespace OMG.Service
 
         private void OnEnter(AreaEvents.OnEnter onEnter)
         {
-            if (!(onEnter.EnteringObject is NwPlayer nwPlayer))
+            if (onEnter.EnteringObject is NwPlayer nwPlayer && Persistence.Characters.ContainsKey(nwPlayer.CDKey))
             {
-                return;
+                var character = Persistence.Characters[nwPlayer.CDKey];
+                character.UpdateEntity();
+                Serialize(character);
             }
-
-            if (!Persistence.Characters.ContainsKey(nwPlayer.CDKey))
-            {
-                return;
-            }
-
-            var character = Persistence.Characters[nwPlayer.CDKey];
-            character.UpdateEntity();
-            Serialize(character);
         }
 
         public override void Serialize(CharacterEntity entity)
         {
             // Serialize characterEntity json
+            // TODO: Handle exception if something goes wrong
             File.WriteAllText(GetFilePath(entity), JsonConvert.SerializeObject(entity));
         }
 
@@ -68,10 +63,26 @@ namespace OMG.Service
         {
             var filePath = GetFilePath(nwObject);
 
+            // Check whether we have persistence file
             if (File.Exists(filePath))
             {
-                // Deserialize character json
-                var character = JsonConvert.DeserializeObject<CharacterEntity>(File.ReadAllText(filePath));
+                CharacterEntity character;
+                // Try if Deserialization goes well
+                try
+                {
+                    // Deserialize character json
+                    character = JsonConvert.DeserializeObject<CharacterEntity>(File.ReadAllText(filePath));
+                }
+                catch (Exception e)
+                {
+                    // Well f**k
+                    // We have to kick player cause json failed to load properly
+                    // TODO: Handle it better
+                    nwObject.BootPlayer("Persistence JSON Load Error");
+                    Logger.Error(e, $"Deserialization error for player {nwObject.PlayerName}:{nwObject.Name}");
+                    return null;
+                }
+
 
                 // Check if player name checks out
                 if (nwObject.PlayerName != character.PlayerName)

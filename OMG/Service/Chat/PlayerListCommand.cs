@@ -2,6 +2,7 @@
 using NWN.API;
 using NWN.Services;
 using OMG.Interface;
+using OMG.Util;
 
 namespace OMG.Service.Chat
 {
@@ -19,7 +20,7 @@ namespace OMG.Service.Chat
                 playerList.Append($"{player.PlayerName}, ");
             }
 
-            sender.SendServerMessage($"Online players: {playerList.ToString()[..^2]}", Color.ROSE);
+            sender.SendServerMessage($"Online players: {playerList.ToString()[..^2]}", Colors.Salmon);
         }
     }
 }

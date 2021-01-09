@@ -2,6 +2,7 @@
 using NWN.API.Constants;
 using NWN.Services;
 using OMG.Interface;
+using OMG.Util;
 
 namespace OMG.Service.Chat
 {
@@ -35,7 +36,7 @@ namespace OMG.Service.Chat
                 }
                 default:
                 {
-                    sender.SendServerMessage("Command needs an argument", Color.RED);
+                    sender.SendServerMessage("Command needs an argument", Colors.Red);
                     break;
                 }
             }
@@ -43,7 +44,7 @@ namespace OMG.Service.Chat
 
         private void ToggleItemVisibility(NwItem nwItem)
         {
-            if (nwItem.IsValid)
+            if (nwItem is not null && nwItem.IsValid)
             {
                 nwItem.HiddenWhenEquipped = ++nwItem.HiddenWhenEquipped % 2;
             }

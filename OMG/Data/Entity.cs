@@ -6,12 +6,10 @@ namespace OMG.Data
     {
         protected Entity(T nwObjectInstance)
         {
-            if (NwObjectInstance == null)
+            if (NwObjectInstance != null)
             {
-                return;
+                NwObjectInstance = nwObjectInstance;
             }
-
-            NwObjectInstance = nwObjectInstance;
         }
 
         public abstract string ID { get; }

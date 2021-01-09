@@ -5,6 +5,7 @@ using NWN.API.Constants;
 using NWN.API.Events;
 using NWN.Services;
 using OMG.Interface;
+using OMG.Util;
 
 namespace OMG.Service.Chat
 {
@@ -30,22 +31,18 @@ namespace OMG.Service.Chat
             {
                 // Message is out-of-character
                 // Make it orange
-                message = message.ColorString(new Color(255, 165, 0));
+                message = message.ColorString(Colors.Orange);
             }
             else
             {
                 // Message is in-character
                 var foundEmoteIndices = new List<int>();
-                // Check if message contains emote symbol
-                if (message.Contains('*'))
                 // Find emote symbol '*' occurrences
+                for (var i = 0; i < message.Length; i++)
                 {
-                    for (var i = 0; i < message.Length; i++)
+                    if (message[i] == '*')
                     {
-                        if (message[i] == '*')
-                        {
-                            foundEmoteIndices.Add(i);
-                        }
+                        foundEmoteIndices.Add(i);
                     }
                 }
                 // ^This definitely can be replaced with Regex.Split()
@@ -58,8 +55,8 @@ namespace OMG.Service.Chat
                     var startIndex = foundEmoteIndices[i * 2];
                     var endIndex = foundEmoteIndices[i * 2 + 1];
                     var emote = message[startIndex..(endIndex + 1)];
-                    // Color emote to cyan
-                    message = message.Replace(emote, emote.ColorString(new Color(0, 116, 214)));
+                    // Color emote text
+                    message = message.Replace(emote, emote.ColorString(Colors.NavyBlue));
                 }
             }
 
@@ -73,7 +70,7 @@ namespace OMG.Service.Chat
             // Get the message from the event
             var message = eventInfo.Message.Split(' ');
 
-            // Check if message has command syntax
+            // Check if message has command syntax: at least two characters
             if (message.Length == 0 || message[0].Length < 2)
             {
                 return;
@@ -100,6 +97,9 @@ namespace OMG.Service.Chat
                 return;
             }
 
+            // It's a valid syntax-wise command at this point and we don't want player to send the message in the chat
+            eventInfo.Message = null;
+
             // Find first message from created ones. Command must be at the beginning of the event message. 
             // The rest of the message is probably arguments or empty
             var foundCommand = chatCommands.FirstOrDefault(command => command.Command.ToLower().Equals(message[0].ToLower()));
@@ -110,7 +110,7 @@ namespace OMG.Service.Chat
             {
                 foundCommand.ExecuteCommand(eventInfo.Sender, message[1..]);
             }
-            else if(message[0].ToLower() == "/help")
+            else if (message[0].ToLower() == "/help")
             {
                 //TODO: Handle help command here
             }
@@ -119,8 +119,6 @@ namespace OMG.Service.Chat
                 // (╯°□°）╯︵ ┻━┻
                 eventInfo.Sender.SendServerMessage($"Command: {message[0]} could not be found. Type /help for command list");
             }
-            // It's a valid command at this point and we don't want player to send the message in the chat
-            eventInfo.Message = null;
         }
 
         public void SendToWebHook(ModuleEvents.OnPlayerChat eventInfo)
