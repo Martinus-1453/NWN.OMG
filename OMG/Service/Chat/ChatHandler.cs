@@ -5,7 +5,6 @@ using NWN.API.Constants;
 using NWN.API.Events;
 using NWN.Services;
 using OMG.Interface;
-using OMG.Util;
 
 namespace OMG.Service.Chat
 {
@@ -21,46 +20,6 @@ namespace OMG.Service.Chat
 
             // Subscribe to the OnPlayerChat module event
             eventService.Subscribe<NwModule, ModuleEvents.OnPlayerChat>(NwModule.Instance, OnChatMessage);
-        }
-
-        public string ProcessChatMessage(ModuleEvents.OnPlayerChat eventInfo)
-        {
-            var message = eventInfo.Message;
-            // Check if message starts with out-of-character sequence "//"
-            if (message.StartsWith("//"))
-            {
-                // Message is out-of-character
-                // Make it orange
-                message = message.ColorString(Colors.Orange);
-            }
-            else
-            {
-                // Message is in-character
-                var foundEmoteIndices = new List<int>();
-                // Find emote symbol '*' occurrences
-                for (var i = 0; i < message.Length; i++)
-                {
-                    if (message[i] == '*')
-                    {
-                        foundEmoteIndices.Add(i);
-                    }
-                }
-                // ^This definitely can be replaced with Regex.Split()
-                // ¯\_(ツ)_/¯
-
-                // Emote is always a pair of '*'
-                // Discard odd last '*' by dividing Count by 2
-                for (var i = 0; i < foundEmoteIndices.Count / 2; i++)
-                {
-                    var startIndex = foundEmoteIndices[i * 2];
-                    var endIndex = foundEmoteIndices[i * 2 + 1];
-                    var emote = message[startIndex..(endIndex + 1)];
-                    // Color emote text
-                    message = message.Replace(emote, emote.ColorString(Colors.NavyBlue));
-                }
-            }
-
-            return message;
         }
 
         public void OnChatMessage(ModuleEvents.OnPlayerChat eventInfo)
@@ -93,7 +52,7 @@ namespace OMG.Service.Chat
                 // A good place to send chat message to discord or smth
                 SendToWebHook(eventInfo);
                 // Handle message further
-                eventInfo.Message = ProcessChatMessage(eventInfo);
+                eventInfo.Message = ChatProcessor.ProcessChatMessage(eventInfo.Message);
                 return;
             }
 
