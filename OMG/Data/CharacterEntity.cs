@@ -19,7 +19,7 @@ namespace OMG.Data
         public override string ID => Name;
 
         public override string FileFolderPath { get; } =
-            DatabaseStrings.CharacterFolderPath;
+            SerializerStrings.CharacterFolderPath;
 
         public override void UpdateEntity()
         {

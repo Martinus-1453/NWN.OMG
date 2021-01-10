@@ -5,7 +5,7 @@ using NWN.API;
 using NWN.API.Events;
 using NWN.Services;
 using OMG.Data;
-using static OMG.Service.LogService;
+using static OMG.Service.Log;
 
 namespace OMG.Service
 {
@@ -14,7 +14,6 @@ namespace OMG.Service
     {
         public CharacterSerializer(NativeEventService nativeEventService)
         {
-            Database.CreateFolders();
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientEnter>(NwModule.Instance, OnClientEnter);
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnClientLeave>(NwModule.Instance, OnClientLeave);
             foreach (var instanceArea in NwModule.Instance.Areas)
@@ -139,7 +138,7 @@ namespace OMG.Service
 
         protected override string GetFilePath(NwPlayer nwObject)
         {
-            return $"{DatabaseStrings.CharacterFolderPath}{nwObject.Name}{DatabaseStrings.FileFormat}";
+            return $"{SerializerStrings.CharacterFolderPath}{nwObject.Name}{SerializerStrings.FileFormat}";
         }
     }
 }

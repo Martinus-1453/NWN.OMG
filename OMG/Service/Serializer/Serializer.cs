@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NWN.API;
 using OMG.Data;
 
@@ -10,7 +11,10 @@ namespace OMG.Service
     {
         protected Serializer()
         {
-            Database.CreateFolders();
+            // Create directories if not existent
+            Directory.CreateDirectory(SerializerStrings.FolderPath);
+            Directory.CreateDirectory(SerializerStrings.CharacterFolderPath);
+            Directory.CreateDirectory(SerializerStrings.PlaceableFolderPath);
         }
 
         public abstract void Serialize(TEntity entity);
@@ -29,7 +33,7 @@ namespace OMG.Service
 
         protected virtual string GetFilePath(TEntity entity)
         {
-            return $"{entity.FileFolderPath}\\{entity.ID}{DatabaseStrings.FileFormat}";
+            return $"{entity.FileFolderPath}\\{entity.ID}{SerializerStrings.FileFormat}";
         }
     }
 }

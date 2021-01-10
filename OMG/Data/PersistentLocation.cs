@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Numerics;
 using NWN.API;
-using static OMG.Service.LogService;
+using static OMG.Service.Log;
 
 namespace OMG.Data
 {
