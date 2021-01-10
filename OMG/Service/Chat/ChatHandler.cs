@@ -61,7 +61,8 @@ namespace OMG.Service.Chat
 
             // Find first message from created ones. Command must be at the beginning of the event message. 
             // The rest of the message is probably arguments or empty
-            var foundCommand = chatCommands.FirstOrDefault(command => command.Command.ToLower().Equals(message[0].ToLower()));
+            var foundCommand =
+                chatCommands.FirstOrDefault(command => command.Command.ToLower().Equals(message[0].ToLower()));
 
             // This checks might look weird but it ensures to give access to DM commands only to DMs
             // Also checks whether command is not null you dummy :)
@@ -76,7 +77,8 @@ namespace OMG.Service.Chat
             else
             {
                 // (╯°□°）╯︵ ┻━┻
-                eventInfo.Sender.SendServerMessage($"Command: {message[0]} could not be found. Type /help for command list");
+                eventInfo.Sender.SendServerMessage(
+                    $"Command: {message[0]} could not be found. Type /help for command list");
             }
         }
 

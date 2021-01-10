@@ -23,14 +23,22 @@ namespace OMG.Data
 
         public override void UpdateEntity()
         {
-            if (NwObjectInstance == null) return;
+            if (NwObjectInstance == null)
+            {
+                return;
+            }
+
             HP = NwObjectInstance.HP;
             PersistentLocation = new PersistentLocation(NwObjectInstance.Location);
         }
 
         public override void UpdateNwObject()
         {
-            if (NwObjectInstance == null) return;
+            if (NwObjectInstance == null)
+            {
+                return;
+            }
+
             NwObjectInstance.HP = HP;
             if (PersistentLocation != null)
             {
