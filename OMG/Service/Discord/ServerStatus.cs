@@ -13,10 +13,10 @@ namespace OMG.Service.Discord
             nativeEventService.Subscribe<NwModule, ModuleEvents.OnModuleLoad>(NwModule.Instance, OnModuleLoad);
         }
 
-        private void OnModuleLoad(ModuleEvents.OnModuleLoad onModuleLoad)
+        private async void OnModuleLoad(ModuleEvents.OnModuleLoad onModuleLoad)
         {
-            // TODO: Fix it somehow to prevent server crash
-            DiscordHooks.StatusHook.SendMessage("Server is up and running!");
+            await DiscordHooks.Status();
+            await NwTask.SwitchToMainThread();
         }
     }
 }

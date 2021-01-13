@@ -1,13 +1,30 @@
-﻿namespace OMG.Util
+﻿using System.Threading.Tasks;
+using Discord;
+using Discord.Webhook;
+
+namespace OMG.Util
 {
-    public class DiscordHooks
+    public static class DiscordHooks
     {
         // TODO: Use deserialization instead
-        public static WebHook StatusHook { get; } = new WebHook
+
+        private static DiscordWebhookClient StatusWebhookClient { get; } = new DiscordWebhookClient(
+            797912179923746856,
+            "6AnkNpb2Ju4ijGHlQ8xeF8EPXXQCOFaEyYozQ72rQ-DiP8qBYiBRi_PqJ-p_ILZRDBhq"
+        );
+
+        public static async Task Status()
         {
-            WebHookString = @"https://discord.com/api/webhooks/797912179923746856/6AnkNpb2Ju4ijGHlQ8xeF8EPXXQCOFaEyYozQ72rQ-DiP8qBYiBRi_PqJ-p_ILZRDBhq",
-            UserName = "Server Status Bot",
-            ProfilePicture = @"https://findicons.com/files/icons/1202/futurama_vol_6_the_movies/128/hedionism_bot.png"
-        };
+            var embed = new EmbedBuilder
+            {
+                Title = "Test Embed",
+                Description = "Test Description"
+            };
+
+            // Webhooks are able to send multiple embeds per message
+            // As such, your embeds must be passed as a collection.
+            await StatusWebhookClient.SendMessageAsync("Send a message to this webhook!",
+                embeds: new[] {embed.Build()});
+        }
     }
 }
