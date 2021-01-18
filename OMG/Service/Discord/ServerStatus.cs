@@ -10,7 +10,8 @@ namespace OMG.Service.Discord
     {
         public ServerStatus(NativeEventService nativeEventService)
         {
-            nativeEventService.Subscribe<NwModule, ModuleEvents.OnModuleLoad>(NwModule.Instance, OnModuleLoad);
+            // TODO: ADD VARIABLE CHECK FOR DOCKER ENVIRONMENT
+            //nativeEventService.Subscribe<NwModule, ModuleEvents.OnModuleLoad>(NwModule.Instance, OnModuleLoad);
         }
 
         private async void OnModuleLoad(ModuleEvents.OnModuleLoad onModuleLoad)

@@ -33,7 +33,8 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net.Webhook" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NWN.Managed" Version="8193.20.7" ExcludeAssets="runtime" />
+    <PackageReference Include="NWN.Managed" Version="8193.20.11" ExcludeAssets="runtime" />
+    <PackageReference Include="Troschuetz.Random" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
