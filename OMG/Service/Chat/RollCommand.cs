@@ -226,15 +226,25 @@ namespace OMG.Service.Chat
             }
 
             var indexOfK = firstArgument.IndexOf('k');
+            string result;
 
+            // Quality of life improvement -> It is possible to call this with /roll k'number'
+            if (indexOfK == 0 && int.TryParse(firstArgument[1..], out var numberOfSides))
+            {
+                result = ProcessDiceRoll(1, numberOfSides);
+                PrintRoll(sender, result, isHidden);
+                return;
+            }
+
+            // Check if dice number and side syntax is ok
             if (!int.TryParse(firstArgument[..indexOfK], out var numberOfDices) ||
-                !int.TryParse(firstArgument[(indexOfK + 1)..], out var numberOfSides))
+                !int.TryParse(firstArgument[(indexOfK + 1)..], out numberOfSides))
             {
                 sender.SendServerMessage("Invalid argument", Colors.Red);
                 return;
             }
 
-            var result = ProcessDiceRoll(numberOfDices, numberOfSides);
+            result = ProcessDiceRoll(numberOfDices, numberOfSides);
             PrintRoll(sender, result, isHidden);
         }
 
@@ -285,9 +295,18 @@ namespace OMG.Service.Chat
 
         private void PrintRoll(NwPlayer nwPlayer, string result, bool isHidden)
         {
-            // TODO: Handle is hidden
-            var color = isHidden ? Colors.Gray : Colors.Gold;
-            nwPlayer.FloatingTextString(result.ColorString(color), false);
+            var color = isHidden ? Colors.Magenta : Colors.Gold;
+
+            if (!isHidden)
+            {
+                nwPlayer.SpeakString(result.ColorString(color));
+            }
+            else
+            {
+                nwPlayer.FloatingTextString($"{nwPlayer.Name} rolled - {result.ColorString(color)}", false);
+                nwPlayer.SpeakString($"{"Hidden roll -".ColorString(Colors.Gray)} {result.ColorString(color)}",
+                    TalkVolume.SilentShout);
+            }
         }
     }
 }
