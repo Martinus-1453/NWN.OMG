@@ -30,7 +30,7 @@ namespace OMG.Service.Chat
                         nwPlayer.GiveXp(amount);
 
                         // TODO: FIX THIS CAUSE THIS CHECK DOES NOT WORK
-                        if (nwPlayer == sender)
+                        if (nwPlayer.UUID == sender.UUID)
                         {
                             sender.SendServerMessage($"You've given {nwPlayer.Name} {amount} XP", Colors.Green);
                         }
