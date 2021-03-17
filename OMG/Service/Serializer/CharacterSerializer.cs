@@ -138,7 +138,7 @@ namespace OMG.Service
 
         protected override string GetFilePath(NwPlayer nwObject)
         {
-            return $"{SerializerStrings.CharacterFolderPath}{nwObject.Name}{SerializerStrings.FileFormat}";
+            return Path.Join(SerializerPaths.CharacterFolderPath, nwObject.Name + SerializerPaths.FileFormat);
         }
     }
 }

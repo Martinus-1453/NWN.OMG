@@ -9,14 +9,6 @@ namespace OMG.Service
         where TEntity : Entity<TNwObject>
         where TNwObject : NwObject
     {
-        protected Serializer()
-        {
-            // Create directories if not existent
-            Directory.CreateDirectory(SerializerStrings.FolderPath);
-            Directory.CreateDirectory(SerializerStrings.CharacterFolderPath);
-            Directory.CreateDirectory(SerializerStrings.PlaceableFolderPath);
-        }
-
         public abstract void Serialize(TEntity entity);
         public abstract TEntity Deserialize(TNwObject nwObject);
         public abstract TEntity Initialize(TNwObject nwObject);
@@ -33,7 +25,7 @@ namespace OMG.Service
 
         protected virtual string GetFilePath(TEntity entity)
         {
-            return $"{entity.FileFolderPath}\\{entity.ID}{SerializerStrings.FileFormat}";
+            return Path.Join(entity.FileFolderPath, entity.ID + SerializerPaths.FileFormat);
         }
     }
 }

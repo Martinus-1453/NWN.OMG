@@ -1,17 +1,46 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Webhook;
+using Newtonsoft.Json;
+using OMG.Service;
+using static OMG.Service.Log;
 
 namespace OMG.Util
 {
     public static class DiscordHooks
     {
+        static DiscordHooks()
+        {
+            Tuple<ulong, string> credentials = null;
+            // Try if credential deserialization goes well
+            try
+            {
+                // Deserialize credentials -> TODO: Change to more complex type after more hooks are introduced
+                credentials = JsonConvert.DeserializeObject<Tuple<ulong, string>>(
+                    File.ReadAllText(
+                        Path.Join(SerializerPaths.ServerFolderPath, "discord" + SerializerPaths.FileFormat))
+                    );
+            }
+            catch (Exception e)
+            {
+                // No credentials - disable functionality
+                Logger.Error(e, $"Deserialization error for discord credentials");
+            }
+
+            if (credentials != null)
+            {
+                // Init WebhookClient
+                StatusWebhookClient = new DiscordWebhookClient(
+                    credentials.Item1,
+                    credentials.Item2
+                );
+            }
+        }
         // TODO: Use deserialization instead
 
-        private static DiscordWebhookClient StatusWebhookClient { get; } = new DiscordWebhookClient(
-            797912179923746856,
-            "6AnkNpb2Ju4ijGHlQ8xeF8EPXXQCOFaEyYozQ72rQ-DiP8qBYiBRi_PqJ-p_ILZRDBhq"
-        );
+        private static DiscordWebhookClient StatusWebhookClient { get; }
 
         public static async Task Status()
         {
@@ -23,8 +52,11 @@ namespace OMG.Util
 
             // Webhooks are able to send multiple embeds per message
             // As such, your embeds must be passed as a collection.
-            await StatusWebhookClient.SendMessageAsync("Send a message to this webhook!",
-                embeds: new[] {embed.Build()});
+            if (StatusWebhookClient != null)
+            {
+                await StatusWebhookClient.SendMessageAsync("Send a message to this webhook!",
+                    embeds: new[] {embed.Build()});
+            }
         }
     }
 }
